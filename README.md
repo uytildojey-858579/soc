@@ -17,7 +17,7 @@ sudo apt install curl gnupg
 curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo gpg --dearmor -o /usr/share/keyrings/wazuh-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/wazuh-archive-keyring.gpg] https://packages.wazuh.com/4.x/apt/ stable main" | sudo tee /etc/apt/sources.list.d/wazuh.list
 sudo apt update
-sudo apt install wazuh-agent
+sudo apt install wazuh-agent=4.11.0-1
 
 sudo nano /var/ossec/etc/ossec.conf
 
