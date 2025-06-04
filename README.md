@@ -3,7 +3,7 @@
 ```bash
 sudo apt update && sudo apt full-upgrade -y
 sudo apt install curl apt-transport-https ca-certificates software-properties-common -y 
-curl -sO https://packages.wazuh.com/4.11/wazuh-install.sh && sudo bash ./wazuh-install -a -i -v
+curl -sO https://packages.wazuh.com/4.11/wazuh-install.sh && sudo bash ./wazuh-install.sh -a -i -v
 ````
 
 * C'est fini.
