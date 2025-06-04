@@ -1,12 +1,9 @@
-Voici ton texte bien formaté en **Markdown** tout en conservant le fond inchangé :
-
-````md
 ## Install Wazuh simple
 
 ```bash
 sudo apt update && sudo apt full-upgrade -y
 sudo apt install curl apt-transport-https ca-certificates software-properties-common -y 
-curl -s0 https://packages.wazuh.com/4.12/wazuh-install.sh && sudo bash ./wazuh-install -a -i -v
+curl -sO https://packages.wazuh.com/4.11/wazuh-install.sh && sudo bash ./wazuh-install -a -i -v
 ````
 
 * C'est fini.
@@ -14,13 +11,16 @@ curl -s0 https://packages.wazuh.com/4.12/wazuh-install.sh && sudo bash ./wazuh-i
 ## Agent
 
 ```bash
-sudo apt update && sudo apt full-upgrade -y
+sudo apt update
+
 sudo apt install curl gnupg
 curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo gpg --dearmor -o /usr/share/keyrings/wazuh-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/wazuh-archive-keyring.gpg] https://packages.wazuh.com/4.x/apt/ stable main" | sudo tee /etc/apt/sources.list.d/wazuh.list
 sudo apt update
 sudo apt install wazuh-agent
-sudo nano /var/ossec/etc/ossec.conf # changer IP
+
+sudo nano /var/ossec/etc/ossec.conf
+
 sudo systemctl daemon-reexec
 sudo systemctl enable wazuh-agent
 sudo systemctl start wazuh-agent
@@ -46,6 +46,7 @@ sudo systemctl start wazuh-agent
 
 ```bash
 sudo /var/ossec/bin/manage_agents
+
 sudo systemctl restart wazuh-agent
 ```
 
@@ -59,9 +60,11 @@ sudo systemctl restart wazuh-agent
 
 ## Maintenant Suricata
 
-* L’installer
+```
+sudo apt install suricata
+```
 
-### Ensuite, sur la machine **agent** :
+### Sur la machine **agent** :
 
 ```bash
 sudo nano /var/ossec/etc/ossec.conf
@@ -89,18 +92,19 @@ sudo nano /var/ossec/etc/decoders/suricata_decoder.xml
 ```
 
 Contenu :
-
-```xml
+```
 <decoder name="suricata-alert">
   <program_name>suricata</program_name>
-  <type>json</type>
+  <prematch>suricata</prematch>
+  <regex>^\w{3} \d+ \d+:\d+:\d+ .*</regex>
+  <order>json</order>
 </decoder>
-```
+
 
 Ensuite créer une règle :
 
 ```bash
-sudo nano /var/ossec/rules/suricata_rule.xml
+sudo nano /var/ossec/etc/rules/suricata_rule.xml
 ```
 
 Contenu :
@@ -108,8 +112,8 @@ Contenu :
 ```xml
 <group name="surcata,">
   <rule id="100100" level="10">
-    <decoded_as>suricata-alert</decoded_as>
-    <description>Suricata alert detected</description>
+    <field name="alert.signature">.*</field>
+    <description>Suricata alert detected: $alert.signature</description>
     <group>suricata</group>
   </rule>
 </group>
@@ -130,7 +134,7 @@ sudo systemctl restart wazuh-manager
 Regarder dans :
 
 ```bash
-/var/ossec/logs/alerts/alerts.json
+/var/ossec/logs/bin/wazuh-logtest
 ```
 
 
