@@ -3,7 +3,9 @@
 ```bash
 sudo apt update && sudo apt full-upgrade -y
 sudo apt install curl apt-transport-https ca-certificates software-properties-common -y 
-curl -sO https://packages.wazuh.com/4.11/wazuh-install.sh && sudo bash ./wazuh-install.sh -a -i -v
+curl -sO https://packages.wazuh.com/4.11/wazuh-install.sh && sudo bash ./wazuh-install.sh -a -i
+ou
+curl -sO https://packages.wazuh.com/4.12/wazuh-install.sh && sudo bash ./wazuh-install.sh -a -i
 ````
 
 * C'est fini.
@@ -59,12 +61,40 @@ sudo systemctl restart wazuh-agent
 ---
 
 ## Maintenant Suricata
-
-```
-sudo apt install suricata
-```
-
 ### Sur la machine **agent** :
+
+```bash
+sudo add-apt-repository ppa:oisf/suricata-stable
+sudo apt-get update
+sudo apt-get install suricata -y
+
+```
+
+```bash
+cd /tmp/ && curl -LO https://rules.emergingthreats.net/open/suricata-6.0.8/emerging.rules.tar.gz
+mkdir -p /etc/suricata/rules/
+sudo tar -xvzf emerging.rules.tar.gz && sudo mv rules/*.rules /etc/suricata/rules/
+sudo chmod 640 /etc/suricata/rules/*.rules
+```
+- modifer /etc/suricata/suricata.yaml
+```bash
+
+HOME_NET: "<IP_AGENT>"
+EXTERNAL_NET: "any"
+
+rule-files:
+- "*.rules"
+- "/etc/suricata/rules/*.rules"
+
+# Global stats configuration
+stats:
+enabled: yes
+
+# Linux high speed capture support
+af-packet:
+  - interface: ens3
+```
+
 
 ```bash
 sudo nano /var/ossec/etc/ossec.conf
@@ -79,62 +109,8 @@ Ajouter dans `<ossec_config>` en bas :
 </localfile>
 ```
 
-Puis :
-
-```bash
-sudo systemctl restart wazuh-agent
-```
-
-### Sur la machine **manager** :
-
-```bash
-sudo nano /var/ossec/etc/decoders/suricata_decoder.xml
-```
-
-Contenu :
-```
-<decoder name="suricata-alert">
-  <program_name>suricata</program_name>
-  <prematch>suricata</prematch>
-  <regex>^\w{3} \d+ \d+:\d+:\d+ .*</regex>
-  <order>json</order>
-</decoder>
+-restart tout 
 
 
-Ensuite créer une règle :
-
-```bash
-sudo nano /var/ossec/etc/rules/suricata_rule.xml
-```
-
-Contenu :
-
-```xml
-<group name="surcata,">
-  <rule id="100100" level="10">
-    <field name="alert.signature">.*</field>
-    <description>Suricata alert detected: $alert.signature</description>
-    <group>suricata</group>
-  </rule>
-</group>
-```
-
-Redémarrer le manager :
-
-```bash
-sudo systemctl restart wazuh-manager
-```
-
-### Tester que c'est bon :
-
-```bash
-/var/ossec/bin/ossec-logtest
-```
-
-Regarder dans :
-
-```bash
-/var/ossec/logs/bin/wazuh-logtest
-```
 
 
